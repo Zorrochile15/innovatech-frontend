@@ -3,7 +3,7 @@ name: CI/CD Pipeline - Frontend ECS
 on:
   push:
     branches:
-      - deploy
+      - main
 
 env:
   AWS_REGION: us-east-1                   # Región de tu laboratorio
