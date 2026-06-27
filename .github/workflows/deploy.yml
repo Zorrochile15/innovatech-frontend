@@ -4,14 +4,19 @@ on:
   push:
     branches:
       - main
+      
 
 env:
-  AWS_REGION: us-east-1                   # Región de tu laboratorio
-  ECR_REPOSITORY: innovatech-frontend     # Nombre de tu repo en ECR
-  ECS_SERVICE: frontend-service           # EL NOMBRE QUE LE PONGAS A TU SERVICIO EN ECS
-  ECS_CLUSTER: innovatech-cluster         # EL NOMBRE DE TU CLÚSTER EN ECS
-  ECS_TASK_DEFINITION: task-frontend.json # El archivo que me enviaste
-  CONTAINER_NAME: frontend                # El "name" dentro del JSON
+  AWS_REGION: us-east-1
+  
+  # ==========================================
+  # VARIABLES EXACTAS DEL FRONTEND
+  # ==========================================
+  ECR_REPOSITORY: innovatech-frontend          # Tu bóveda en ECR
+  ECS_CLUSTER: innovatech-cluster              # El nombre de tu clúster en AWS
+  ECS_SERVICE: frontend-service                # El nombre de tu servicio en ECS
+  ECS_TASK_FAMILY: task-frontend               # El nombre de la familia (de tu captura)
+  CONTAINER_NAME: frontend                     # El nombre del contenedor
 
 jobs:
   deploy:
@@ -27,7 +32,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # MUY IMPORTANTE EN AWS ACADEMY
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} 
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Iniciar sesión en Amazon ECR
@@ -44,11 +49,15 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-    - name: Llenar el nuevo ID de la imagen en la Definición de Tarea de ECS
+    - name: Descargar la Definición de Tarea actual desde ECS
+      run: |
+        aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_FAMILY }} --query taskDefinition > task-definition.json
+
+    - name: Llenar el nuevo ID de la imagen en la Definición de Tarea
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ${{ env.ECS_TASK_DEFINITION }}
+        task-definition: task-definition.json
         container-name: ${{ env.CONTAINER_NAME }}
         image: ${{ steps.build-image.outputs.image }}
 
