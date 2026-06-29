@@ -38,7 +38,7 @@ function Footer() {
               <ul className=" text-white">
                 <li className="mb-4">
                   <a href="#" className="hover:underline ">
-                    Instagram
+                    Instagrampaltas
                   </a>
                 </li>
                 <li>
